@@ -12,7 +12,7 @@ There are four containers running in this system: three (`etcd0`, `etcd1`, `etcd
 
 Antithesis's [Test Composer](https://antithesis.com/docs/test_templates/) framework allows for modular test definition, that, when running on Antithesis, takes advantage of the Antithesis platform for things like parallelism, test length, and command order.
 
-Executables become drivers based on [their absolute directory location and names](https://antithesis.com/docs/test_templates/first_test/#structuring-test-templates). In `workload/Dockerfile`, you can see that two drivers get defined in the `workload` container image: `/opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py` and `/opt/antithesis/test/v1/main/serial_driver_validate_operations`. *Drivers can be defined on any container in the system.* 
+Executables become drivers based on [their absolute directory location and names](https://antithesis.com/docs/test_templates/first_test/#structuring-test-templates). In `test-template/Dockerfile`, you can see that two drivers get defined in the `workload` container image: `/opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py` and `/opt/antithesis/test/v1/main/serial_driver_validate_operations`. *Drivers can be defined on any container in the system.* 
 
 ### Parallel Driver
 
@@ -62,7 +62,7 @@ While the SDK assertions won't be evaluated locally, you can still ensure everyt
 
 `docker pull bitnami/etcd:3.5`
 
-2. Build the workload image. From within the `/workload` directory, run the following command: 
+2. Build the workload image. From within the `/test-template` directory, run the following command: 
 
 `docker build . -t workload:latest`
 
