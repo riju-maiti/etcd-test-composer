@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/anishathalye/porcupine"
-	combinations "github.com/mxschmitt/golang-combinations"
 	"github.com/antithesishq/antithesis-sdk-go/assert"
+	combinations "github.com/mxschmitt/golang-combinations"
 )
 
 type kvInput struct {
@@ -98,13 +98,14 @@ var kvModel = porcupine.Model{
 }
 
 func Validate(filepath string, viz bool) {
-	fmt.Println("antithesis-porcupine: Starting Validate()")
-	assert.Sometimes(true, "antithesis-porcupine: Starting Validate()", nil)
+	fmt.Println("antithesis-porcupine: starting Validate()")
+	assert.Sometimes(true, "antithesis-porcupine: starting Validate()", nil)
 
-	fmt.Println("antithesis-porcupine: Opening operations log file")
+	fmt.Println("antithesis-porcupine: opening operations log file")
 	file, err := os.Open(filepath)
 	if err != nil {
-		fmt.Printf("antithesis-porcupine: error reading etcd log, can't validate test \n")
+		fmt.Printf("antithesis-porcupine: error reading operations log file, can't validate test \n")
+		assert.Unreachable("error reading operations log file", nil)
 		return
 	}
 	defer file.Close()
@@ -168,7 +169,8 @@ func Validate(filepath string, viz bool) {
 		result := porcupine.CheckOperations(kvModel, operations)
 		if result == true {
 			// the model is linearizable, no need to check failed ops
-			fmt.Printf("antithesis-porcupine: Validate result %v \n", result)
+			fmt.Printf("antithesis-porcupine: validate result %v \n", result)
+			assert.Always(true, "Operations against the cluster are linearizable", nil)
 			return
 		}
 
@@ -178,29 +180,35 @@ func Validate(filepath string, viz bool) {
 
 		fmt.Printf("antithesis-porcupine: %v failed operations to check\n", len(failed_ops))
 
+		if len(failed_ops) > 19 {
+			fmt.Printf("antithesis-porcupine: too many failed operations. total combinations of this number could exceed memory limits")
+			assert.Reachable("Memory limit could be hit if validating combinations of failed operations", map[string]interface{}{"number_failed_ops": len(failed_ops)})
+			return
+		}
+
 		failed_op_combos := combinations.All(failed_ops)
 		fmt.Printf("antithesis-porcupine: %v total combinations to check\n", len(failed_op_combos))
 
 		for _, ops := range failed_op_combos {
 			fmt.Printf("adding %v failed ops in this round \n", len(ops))
-			//fmt.Printf("antithesis-porcupine: failed ops in this round %v\n", ops)
 			ops_to_check := append(operations, ops...)
-			//fmt.Printf("length of ops to check: %v\n", len(ops_to_check))
 			res := porcupine.CheckOperations(kvModel, ops_to_check)
 			if res {
-				fmt.Printf("antithesis-porcupine: Validate result true.\n")
+				fmt.Printf("antithesis-porcupine: validate result true.\n")
+				assert.Always(true, "Operations against the cluster are linearizable", nil)
 				fmt.Printf("antithesis-porcupine: failed ops that were used for true result - %v.\n", ops)
 				return
 			}
 		}
 
-		// we made it through all possible combinations, so returning false
-		fmt.Printf("antithesis-porcupine: Validate result false.\n")
+		// ∄ a linearizable subset → linearizability violation somewhere
+		fmt.Printf("antithesis-porcupine: validate result false.\n")
+		assert.Always(false, "Operations against the cluster are linearizable", nil)
 		return
 	} else {
 		// this only creates a visualization for the successful operations
-		// TODO add visualization for failed operations too?
-		res, info := porcupine.CheckOperationsVerbose(kvModel, operations, 0)
+		// TODO add visualization for failed operations too? Note: _ is a bool response for linearizability
+		_, info := porcupine.CheckOperationsVerbose(kvModel, operations, 0)
 		file, err := os.CreateTemp("resources", "*.html")
 		if err != nil {
 			fmt.Printf("failed to create temp file\n")
@@ -210,8 +218,6 @@ func Validate(filepath string, viz bool) {
 			fmt.Printf("visualization failed\n")
 		}
 		fmt.Printf("wrote visualization to %s\n", file.Name())
-
-		assert.Always(res == porcupine.Ok, "Operations against the cluster are linearizable", nil)
 	}
 }
 
@@ -228,5 +234,6 @@ func main() {
 
 	Validate(op_log, create_viz)
 
-	fmt.Println("antithesis-porcupine: Validate done")
+	fmt.Println("antithesis-porcupine: validation complete done")
+	assert.Reachable("completion of a validation script", nil)
 }

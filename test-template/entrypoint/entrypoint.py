@@ -21,23 +21,23 @@ def check_health():
         try:
             c = etcd3.client(host=node_options[i], port=2379)
             c.get('setting-up')
-            print(f"Workload [first.py]: connection successful with {node_options[i]}")
+            print(f"Workload [entrypoint.py]: connection successful with {node_options[i]}")
         except Exception as e:
-            print(f"Workload [first.py]: connection failed with {node_options[i]}")
-            print(f"Workload [first.py]: error: {e}")
+            print(f"Workload [entrypoint.py]: connection failed with {node_options[i]}")
+            print(f"Workload [entrypoint.py]: error: {e}")
             return False
     return True
     
-print("Workload [first.py]: entered")
+print("Workload [entrypoint.py]: starting...")
 
 while True:
-    print("Workload [first.py]: checking cluster health")
+    print("Workload [entrypoint.py]: checking cluster health...")
     if check_health():
-        print("Workload [first.py]: cluster is healthy.")
+        print("Workload [entrypoint.py]: cluster is healthy!")
         setup_complete({"Message":"ETCD cluster is healthy"})
         break
     else:
-        print(f"Workload [first.py]: cluster is not healthy. retrying in {SLEEP} seconds...")
+        print(f"Workload [entrypoint.py]: cluster is not healthy. retrying in {SLEEP} seconds...")
         time.sleep(SLEEP)
 
 # sleep infinity

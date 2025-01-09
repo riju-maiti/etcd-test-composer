@@ -23,8 +23,6 @@ COPY ./main/go.mod /opt/antithesis/go.mod
 COPY ./main/go.sum /opt/antithesis/go.sum
 COPY ./main/serial_driver_validate_operations.go /opt/antithesis/serial_driver_validate_operations.go
 
-RUN go get github.com/antithesishq/antithesis-sdk-go@latest
-
 RUN go build -o /opt/antithesis/test/v1/main/serial_driver_validate_operations -race
 
 # Copy additional resources into a resources folder (could be any directory except for the test composer directory)
