@@ -22,9 +22,13 @@ Executables become drivers based on [their absolute directory location and names
 
 `serial_driver_validate_operations.go` is a [serial driver](https://antithesis.com/docs/test_templates/test_composer_reference/#serial-driver-command) that validates the operations that have happened against the etcd cluster. 
 
+### Eventually
+
+`eventually_health_check.sh` is an [eventually](https://antithesis.com/docs/test_templates/test_composer_reference/#eventually-command) that checks the cluster health by pinging each node during a quiescent period.
+
 ## SDK Usage
 
-This repository includes the use of Antithesis's Python and Go SDKs. 
+This repository includes the use of Antithesis's Python, Go, and Java SDKs. 
 
 ### setupComplete
 
@@ -34,7 +38,7 @@ The ["setupComplete"](https://antithesis.com/docs/generated/sdk/python/antithesi
 
 ### Assertions
 
-[Antithesis SDKs allow users to define test properties](https://antithesis.com/docs/using_antithesis/sdk/#test-properties) directly within their application. There are two types of properties found in this repository. 
+[Antithesis SDKs allow users to define test properties](https://antithesis.com/docs/using_antithesis/sdk/#test-properties) directly within their application. There are four types of properties found in this repository. 
 
 #### Sometimes Assertions
 
@@ -79,3 +83,9 @@ While the SDK assertions won't be evaluated locally, you can still ensure everyt
 You should see a message: `antithesis-porcupine: Validate done`
 
 You've now validated that your test is ready to run on the Antithesis platform!
+
+## Example Report
+
+Using the three node etcd cluster and the `workload` image built from this repository, we ran a 3 hour test. The generated [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/1lbNRCanp75LRGLHB05LVZJC/t2e1RSTWGpkyvX3AuC6uWXWgOoJyj_oQU9X_LKVvFz4.html).
+
+There are drop downs that expand on various types of properties, including the ones we defined in this workload. If we look under the `Antithesis SDK` menus, we can view the results of our assertions which each have one logging artifact. The logs show the exact steps the simulated system experienced to trigger the assertion.
