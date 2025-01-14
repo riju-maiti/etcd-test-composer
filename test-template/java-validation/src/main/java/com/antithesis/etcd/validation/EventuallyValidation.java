@@ -8,6 +8,7 @@ import io.etcd.jetcd.kv.PutResponse;
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.ByteSequence;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,6 +47,12 @@ public class EventuallyValidation {
     }
 
     public static void main(String[] args) {
+
+        try {
+            TimeUnit.SECONDS.sleep(15);
+        } catch(InterruptedException e) {
+            unreachable("Interrupted exception was hit during health check", null);
+        }
         
         String[] etcdEndpoints = {"http://etcd0:2379", "http://etcd1:2379", "http://etcd2:2379"};
 
