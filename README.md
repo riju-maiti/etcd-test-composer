@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This repo demonstrates the use of the [Antithesis platform](https://antithesis.com/product/what_is_antithesis/) to test [etcd](https://etcd.io/) for violations its [linearizability](https://etcd.io/docs/v3.5/learning/api_guarantees/) guarantee.  
+This repo demonstrates the use of the [Antithesis platform](https://antithesis.com/product/what_is_antithesis/) to test [etcd](https://etcd.io/) for violations against its [linearizability](https://etcd.io/docs/v3.5/learning/api_guarantees/) guarantee. 
 
 ## Setup
 
@@ -40,7 +40,7 @@ This repository includes the use of Antithesis's Python, Go, and Java SDKs, to d
 
 ### setupComplete
 
-The ["setupComplete"](https://antithesis.com/docs/generated/sdk/python/antithesis/lifecycle.html#setup_complete) signals that the system is ready to test: 
+The ["setupComplete"](https://antithesis.com/docs/generated/sdk/python/antithesis/lifecycle.html#setup_complete) signals that the system is ready to test. For example, in `entrypoint.py`: 
 
 `setup_complete({"Message":"ETCD cluster is healthy"})`
 
@@ -58,7 +58,7 @@ Antithesis SDKs allow users to [express the properties their software should hav
 
 [Always assertions](https://antithesis.com/docs/properties_assertions/properties/#always-properties) check that something (like a guarantee) *always happens, on every execution history.* In this case, in `serial_driver_validate_operations.go` this line checks that every operation is linearizable: 
 
-`assert.Always(res == porcupine.Ok, "Operations against the cluster are linearizable", nil)`
+`assert.Always(result == true, "Operations against the cluster are linearizable", nil)`
 
 ### Randomness
 
@@ -74,25 +74,25 @@ This is a 3 step process, which is [described in greater detail here](https://an
 
 `docker pull bitnami/etcd:3.5`
 
-2. Build the workload image. From within the `/test-template` directory, run the following command: 
+2. Build the client image. From within the `/test-template` directory, run the following command: 
 
-`docker build . -t workload:latest`
+`docker build . -t client:latest`
 
 3. run `docker-compose up` from the root directory to start all containers defined in `docker-compose.yml`
 
 4. After the client container has signaled `setupComplete` (or printed `cluster is healthy`), you can run the parallel driver 1 to many times via `docker exec`: 
 
-`docker exec -it workload python3 /opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py`
+`docker exec -it client python3 /opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py`
 
 5. After that completes, you can run the serial driver in the same fashion: 
 
-`docker exec -it workload /opt/antithesis/test/v1/main/serial_driver_validate_operations`
+`docker exec -it client /opt/antithesis/test/v1/main/serial_driver_validate_operations`
 
-You should see a message: `antithesis-porcupine: Validate done`
+You should see a message: `Client [serial_driver_validate]: validation complete done`
 
 You've now validated that your test is ready to run on the Antithesis platform! (Note that SDK assertions won't be evaluated locally).
 
 
 ## Example Report
 
-Using the three node etcd cluster and the `workload` image built from this repository, we ran a 3 hour test. The resulting [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/1lbNRCanp75LRGLHB05LVZJC/t2e1RSTWGpkyvX3AuC6uWXWgOoJyj_oQU9X_LKVvFz4.html), and [our docs]((https://antithesis.com/docs/reports/triage/) show you how to interpret it. 
+Using the three node etcd cluster and the `client` image built from this repository, we ran a 3 hour test. The resulting [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/1lbNRCanp75LRGLHB05LVZJC/t2e1RSTWGpkyvX3AuC6uWXWgOoJyj_oQU9X_LKVvFz4.html), and [our docs](https://antithesis.com/docs/reports/triage/) show you how to interpret it. 
