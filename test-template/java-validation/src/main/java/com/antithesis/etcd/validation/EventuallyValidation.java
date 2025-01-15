@@ -31,7 +31,7 @@ public class EventuallyValidation {
 
         String retrievedValue = getResponse.getKvs().get(0).getValue().toString(StandardCharsets.UTF_8);
 
-        System.out.println("Retrieved value for '" + key + "': " + retrievedValue);
+        System.out.println("Client [eventually_validation]: retrieved value for '" + key + "': " + retrievedValue);
 
         client.close();
 
@@ -77,7 +77,13 @@ public class EventuallyValidation {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode healthy_node_details = mapper.createObjectNode();
         healthy_node_details.put("num_nodes_healthy", nodesHealthy);
-        System.out.println("All nodes are up during health check");
         always(nodesHealthy == 3, "All nodes are up during health check", healthy_node_details);
+
+        if (nodesHealthy == 3) {
+            System.out.println("Client [eventually_validation]: all nodes are up during health check");
+        } else {
+            System.out.println("Client [eventually_validation]: at least one node is not available during health check");
+        }
+
     }
 }
