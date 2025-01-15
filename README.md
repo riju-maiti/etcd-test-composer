@@ -2,33 +2,41 @@
 
 ## Purpose
 
-The purpose of this repository is to serve as a reference point for using [Antithesis](https://antithesis.com/) tooling when testing on the [Antithesis platform](https://antithesis.com/product/what_is_antithesis/). This repository tests for violations of [etcd](https://etcd.io/)'s [linearizability](https://etcd.io/docs/v3.5/learning/api_guarantees/) guarantee.  
+This repo demonstrates the use of the [Antithesis platform](https://antithesis.com/product/what_is_antithesis/) to test [etcd](https://etcd.io/) for violations its [linearizability](https://etcd.io/docs/v3.5/learning/api_guarantees/) guarantee.  
 
 ## Setup
 
-There are four containers running in this system: three (`etcd0`, `etcd1`, `etcd2`) that make up an etcd cluster and one (`workload`) that ["makes the system go"](https://antithesis.com/docs/getting_started/basic_test_hookup/): in this case, by taking operations against etcd and confirming those operations were linearizable. When the workload container starts, the `entrypoint.py` script runs and confirms that all of the etcd hosts are available before [signaling the software is ready to test](https://antithesis.com/docs/getting_started/basic_test_hookup/#ready-signal). 
+There are 4 containers running in this system: 3 that make up an etcd cluster (`etcd0`, `etcd1`, `etcd2`) and one that ["makes the system go"](https://antithesis.com/docs/getting_started/basic_test_hookup/)(`client`). 
 
-## Test Composer Drivers
+The code in the `client` container takes operations against etcd and confirms those operations were linearizable. 
 
-Antithesis's [Test Composer](https://antithesis.com/docs/test_templates/) framework allows for modular test definition, that, when running on Antithesis, takes advantage of the Antithesis platform for things like parallelism, test length, and command order.
+The `client` container also runs the `entrypoint.py` script runs when it starts. This script confirms that all of the etcd hosts are available before [signaling the software is ready to test](https://antithesis.com/docs/getting_started/basic_test_hookup/#ready-signal). 
 
-Executables become drivers based on [their absolute directory location and names](https://antithesis.com/docs/test_templates/first_test/#structuring-test-templates). In `test-template/Dockerfile`, you can see that two drivers get defined in the `workload` container image: `/opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py` and `/opt/antithesis/test/v1/main/serial_driver_validate_operations`. *Drivers can be defined on any container in the system.* 
+## Test Composer 
+
+Antithesis' [Test Composer](https://antithesis.com/docs/test_templates/) framework enables you to define a *test template,* a guide that the system uses to generate thousands of test cases that will run over a multitude of system states. When you use this framework, the platform will handle varying things like parallelism, test length, and command order. 
+
+You provide a set of *test commands,* executables which the framework detects based on [their absolute directory location and names](https://antithesis.com/docs/test_templates/first_test/#structuring-test-templates). 
+
+In `test-template/Dockerfile`, you can see that two test commands get defined in the `client` container image: `/opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py` and `/opt/antithesis/test/v1/main/serial_driver_validate_operations`. 
+
+*Drivers can be defined on any container in the system.* 
 
 ### Parallel Driver
 
-`parallel_driver_generate_traffic.py` is a [parallel driver](https://antithesis.com/docs/test_templates/test_composer_reference/#parallel-driver) that submit operations against the etcd cluster. 0 to many of these drivers can ran at once. 
+`parallel_driver_generate_traffic.py` is a [parallel driver](https://antithesis.com/docs/test_templates/test_composer_reference/#parallel-driver) that submits operations against the etcd cluster. 0 to many of these can run at once. 
 
 ### Serial Driver
 
-`serial_driver_validate_operations.go` is a [serial driver](https://antithesis.com/docs/test_templates/test_composer_reference/#serial-driver-command) that validates the operations that have happened against the etcd cluster. 
+`serial_driver_validate_operations.go` is a [serial driver](https://antithesis.com/docs/test_templates/test_composer_reference/#serial-driver-command) that validates the operations that have happened against the etcd cluster. No other drivers will run in parallel with this one. 
 
 ### Eventually
 
-`eventually_health_check.sh` is an [eventually](https://antithesis.com/docs/test_templates/test_composer_reference/#eventually-command) that checks the cluster health by pinging each node during a quiescent period.
+`eventually_health_check.sh` is an [eventually command](https://antithesis.com/docs/test_templates/test_composer_reference/#eventually-command) that checks the cluster health by pinging each node during a quiescent period.
 
 ## SDK Usage
 
-This repository includes the use of Antithesis's Python, Go, and Java SDKs. 
+This repository includes the use of Antithesis's Python, Go, and Java SDKs, to do the following: 
 
 ### setupComplete
 
@@ -38,29 +46,29 @@ The ["setupComplete"](https://antithesis.com/docs/generated/sdk/python/antithesi
 
 ### Assertions
 
-[Antithesis SDKs allow users to define test properties](https://antithesis.com/docs/using_antithesis/sdk/#test-properties) directly within their application. There are four types of properties found in this repository. 
+Antithesis SDKs allow users to [express the properties their software should have,](https://antithesis.com/docs/properties_assertions/) by [adding assertions to their code](https://antithesis.com/docs/properties_assertions/assertions/). We use 2 types of assertions in this repo. 
 
 #### Sometimes Assertions
 
-These [sometimes assertions](https://antithesis.com/docs/properties_assertions/properties/#sometimes-properties) confirm intended funcitonality happens- in this case, that operations happen against the etcd cluster and that validation occurs. For example, in `parallel_driver_generate_traffic.py`: 
+[Sometimes assertions](https://antithesis.com/docs/properties_assertions/properties/#sometimes-properties) check that intended funcitonality *happens at least once in the course of testing* - in this case, that operations happen against the etcd cluster and that validation occurs. For example, in `parallel_driver_generate_traffic.py`: 
 
 `sometimes(success,"client can make successful put requests",None)`
 
 #### Always Assertions
 
-These [always assertions](https://antithesis.com/docs/properties_assertions/properties/#always-properties) confirm that guarantees are not violated- in this case, that means there are no operations that aren't serializable. For example, in `serial_driver_validate_operations.go`: 
+[Always assertions](https://antithesis.com/docs/properties_assertions/properties/#always-properties) check that something (like a guarantee) *always happens, on every execution history.* In this case, in `serial_driver_validate_operations.go` this line checks that every operation is linearizable: 
 
 `assert.Always(res == porcupine.Ok, "Operations against the cluster are linearizable", nil)`
 
 ### Randomness
 
-Using randonmess in testing allows for varied execution of what's being tested. [The Antithesis SDK](https://antithesis.com/docs/using_antithesis/sdk/#randomness) provides an easy interface to get convenient and structured random values while also making it easier for the Antithesis Platform to learn what sorts of inputs to provide.
+Randomness is key for autonomous testing, since we want the software to follow many, unpredictable execution paths. [The Antithesis SDK](https://antithesis.com/docs/using_antithesis/sdk/#randomness) provides an easy interface to get structured random values while also providing valuable guidance to the Antithesis platform, which increases the efficiency of testing.
 
 ## Testing Locally
 
-Before running your application on the Antithesis platform, a common approach to confirming your driver functionality works is by running it locally. 
+Before running your application on the Antithesis platform, it can be convenient to check your work locally before you kick off a full Antithesis test run.
 
-While the SDK assertions won't be evaluated locally, you can still ensure everything is set up correctly. There are three steps to do this: 
+This is a 3 step process, which is [described in greater detail here](https://antithesis.com/docs/test_templates/testing_locally/): 
 
 1. Pull the bitnami/etcd:3.5 image using the following command: 
 
@@ -72,7 +80,7 @@ While the SDK assertions won't be evaluated locally, you can still ensure everyt
 
 3. run `docker-compose up` from the root directory to start all containers defined in `docker-compose.yml`
 
-4. After the workload container has signaled `setupComplete` (or printed `cluster is healthy`), you can run the parallel driver 1 to many times via `docker exec`: 
+4. After the client container has signaled `setupComplete` (or printed `cluster is healthy`), you can run the parallel driver 1 to many times via `docker exec`: 
 
 `docker exec -it workload python3 /opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py`
 
@@ -82,10 +90,9 @@ While the SDK assertions won't be evaluated locally, you can still ensure everyt
 
 You should see a message: `antithesis-porcupine: Validate done`
 
-You've now validated that your test is ready to run on the Antithesis platform!
+You've now validated that your test is ready to run on the Antithesis platform! (Note that SDK assertions won't be evaluated locally).
+
 
 ## Example Report
 
-Using the three node etcd cluster and the `workload` image built from this repository, we ran a 3 hour test. The generated [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/1lbNRCanp75LRGLHB05LVZJC/t2e1RSTWGpkyvX3AuC6uWXWgOoJyj_oQU9X_LKVvFz4.html).
-
-There are drop downs that expand on various types of properties, including the ones we defined in this workload. If we look under the `Antithesis SDK` menus, we can view the results of our assertions which each have one logging artifact. The logs show the exact steps the simulated system experienced to trigger the assertion.
+Using the three node etcd cluster and the `workload` image built from this repository, we ran a 3 hour test. The resulting [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/1lbNRCanp75LRGLHB05LVZJC/t2e1RSTWGpkyvX3AuC6uWXWgOoJyj_oQU9X_LKVvFz4.html), and [our docs]((https://antithesis.com/docs/reports/triage/) show you how to interpret it. 
