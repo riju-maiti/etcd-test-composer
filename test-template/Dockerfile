@@ -1,7 +1,18 @@
 FROM docker.io/ubuntu:latest 
 
 # Install python and other dependencies
-RUN apt-get update -y && apt-get install -y python3 pip wget python3-etcd3 python3-numpy python3-protobuf python3-filelock
+RUN apt-get update -y && apt-get install -y \
+    python3 pip wget python3-etcd3 python3-numpy python3-protobuf python3-filelock
+
+# Install java
+RUN apt-get install -y openjdk-17-jdk maven
+
+# Copying .java & pom files, maven library installs, removing unnecessary directories that were created
+COPY ./java-health-check /opt/antithesis/java-health-check
+WORKDIR /opt/antithesis/java-health-check
+RUN mvn dependency:copy-dependencies -DoutputDirectory=target/lib
+RUN mvn install
+RUN rm -r target/classes/ target/generated-sources/ target/maven-archiver/ target/maven-status/
 
 # Install Antithesis Python SDK
 RUN pip install antithesis cffi --break-system-packages
@@ -16,6 +27,8 @@ COPY ./entrypoint/entrypoint.py /entrypoint.py
 
 # Copy scripts & executables into required directory for Test Composer
 COPY ./main/parallel_driver_generate_traffic.py /opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py
+
+COPY ./main/eventually_health_check.sh /opt/antithesis/test/v1/main/eventually_health_check.sh
 
 WORKDIR /opt/antithesis
 
