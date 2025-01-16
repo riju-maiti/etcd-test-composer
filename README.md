@@ -18,7 +18,7 @@ Antithesis' [Test Composer](https://antithesis.com/docs/test_templates/) framewo
 
 You provide a set of *test commands,* executables which the framework detects based on [their absolute directory location and names](https://antithesis.com/docs/test_templates/first_test/#structuring-test-templates). 
 
-In `test-template/Dockerfile`, you can see that two test commands get defined in the `client` container image: `/opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py` and `/opt/antithesis/test/v1/main/serial_driver_validate_operations`. 
+In `test-template/Dockerfile`, you can see that three test commands get defined in the `client` container image: `/opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py`, `/opt/antithesis/test/v1/main/serial_driver_validate_operations`, and `/opt/antithesis/test/v1/main/eventually_health_check.sh`. 
 
 *Drivers can be defined on any container in the system.* 
 
@@ -46,7 +46,7 @@ The ["setupComplete"](https://antithesis.com/docs/generated/sdk/python/antithesi
 
 ### Assertions
 
-Antithesis SDKs allow users to [express the properties their software should have,](https://antithesis.com/docs/properties_assertions/) by [adding assertions to their code](https://antithesis.com/docs/properties_assertions/assertions/). We use 2 types of assertions in this repo. 
+Antithesis SDKs allow users to [express the properties their software should have,](https://antithesis.com/docs/properties_assertions/) by [adding assertions to their code](https://antithesis.com/docs/properties_assertions/assertions/). We use 4 types of assertions in this repo. 
 
 #### Sometimes Assertions
 
@@ -95,4 +95,4 @@ You've now validated that your test is ready to run on the Antithesis platform! 
 
 ## Example Report
 
-Using the three node etcd cluster and the `client` image built from this repository, we ran a 3 hour test. The resulting [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/1lbNRCanp75LRGLHB05LVZJC/t2e1RSTWGpkyvX3AuC6uWXWgOoJyj_oQU9X_LKVvFz4.html), and [our docs](https://antithesis.com/docs/reports/triage/) show you how to interpret it. 
+Using the three node etcd cluster and the `client` image built from this repository, we ran a 3 hour test. The resulting [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/Oa0nNAJh_C3hzWrXcKa7newF/Z6o2DCYQufRxVkZI2mGHGDkeEBpi8hd7r3e_bl02cIw.html), and [our docs](https://antithesis.com/docs/reports/triage/) show you how to interpret it. 
