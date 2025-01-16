@@ -48,10 +48,13 @@ public class EventuallyValidation {
 
     public static void main(String[] args) {
 
+        reachable("Performing health check on the etcd cluster", null);
+
         try {
             TimeUnit.SECONDS.sleep(15);
         } catch(InterruptedException e) {
-            unreachable("Interrupted exception was hit during health check", null);
+            System.out.println("Interrupted exception was hit during health check");
+            System.exit(1);
         }
         
         String[] etcdEndpoints = {"http://etcd0:2379", "http://etcd1:2379", "http://etcd2:2379"};
@@ -84,6 +87,5 @@ public class EventuallyValidation {
         } else {
             System.out.println("Client [eventually_validation]: at least one node is not available during health check");
         }
-
     }
 }

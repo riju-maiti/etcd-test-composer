@@ -4,12 +4,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>antithesis</groupId>
-  <artifactId>java-validation</artifactId>
+  <artifactId>java-health-check</artifactId>
   <version>0.0.1</version>
 
-  <name>java-validation</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
+  <name>java-health-check</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
