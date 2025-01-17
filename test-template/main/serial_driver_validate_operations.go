@@ -103,6 +103,7 @@ func OrganizeOperations(filepath string) [][]porcupine.Operation {
 	file, err := os.Open(filepath)
 	if err != nil {
 		fmt.Printf("Client [serial_driver_validate]: error reading operations log file, can't validate test \n")
+		// We should always be able to open the operations log file to validate
 		assert.Unreachable("Error reading operations log file", nil)
 		return nil
 	}
@@ -191,7 +192,8 @@ func Visualize(all_operations [][]porcupine.Operation) {
 
 func Validate(all_operations [][]porcupine.Operation) (bool, error) {
 	fmt.Println("Client [serial_driver_validate]: starting Validate()")
-	assert.Sometimes(true, "Starting validation of operations", nil)
+	// We should reach this part of the code where we start validating the operations
+	assert.Reachable("Starting validation of operations", nil)
 
 	successful_operations, failed_operations := all_operations[0], all_operations[1]
 
@@ -208,9 +210,11 @@ func Validate(all_operations [][]porcupine.Operation) (bool, error) {
 
 	fmt.Printf("Client [serial_driver_validate]: %v failed operations to check\n", len(failed_operations))
 
+	// Sometimes there are too many failed operations to validate. In this script we would run out of memory trying all combinations.
+	assert.Sometimes(len(failed_operations) > 19, "Memory limit could be hit if validating combinations of failed operations", map[string]interface{}{"number_failed_ops": len(failed_operations)})
+
 	if len(failed_operations) > 19 {
 		fmt.Printf("Client [serial_driver_validate]: too many failed operations. total combinations of this number could exceed memory limits")
-		assert.Reachable("Memory limit could be hit if validating combinations of failed operations", map[string]interface{}{"number_failed_ops": len(failed_operations)})
 		return false, fmt.Errorf("Memory limit could be hit")
 	}
 
@@ -255,6 +259,7 @@ func main() {
 		if err != nil {
 			return
 		}
+		// Operations should always be linearizable
 		assert.Always(result == true, "Operations against the cluster are linearizable", nil)
 	} else {
 		Visualize(all_operations)

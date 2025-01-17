@@ -56,6 +56,7 @@ def execute_requests(client, traffic_id, requests):
             value = generate_random_value()
             success, start, end, response, error = request.put_request(client, key, value)
 
+            # We expect that sometimes the requests are successful. A failed request is OK since we expect them to happen sometimes.
             sometimes(success,"Client can make successful put requests", None)
 
             if success:
@@ -73,6 +74,7 @@ def execute_requests(client, traffic_id, requests):
             key = random_choice(KEYS)
             success, start, end, response, error = request.get_request(client, key)
             
+            # We expect that sometimes the requests are successful. A failed request is OK since we expect them to happen sometimes.
             sometimes(success,"Client can make successful get requests", None)
 
             if success:
@@ -88,10 +90,12 @@ def execute_requests(client, traffic_id, requests):
                 print(f"Client [parallel_driver_generate_traffic] ({traffic_id}): failed to do a client get for key '{key}' with error '{error}'")
 
         else:
+            # We should never be here because we should only have put and get request types
             unreachable("unknown request type", {"traffic_id":traffic_id, "request_type":request_type})
             print(f"Client [parallel_driver_generate_traffic] ({traffic_id}): unknown request name. this should never happen")
     
     local_file_helper.write_operations(operations)
+
     reachable("Completion of a traffic execution script", None)
     print(f"Client [parallel_driver_generate_traffic] ({traffic_id}): traffic script completed")
 
@@ -102,10 +106,10 @@ def simulate_traffic():
     try:
         host = random_choice(HOSTS)
         client = etcd3.client(host=host, port=2379)
-        reachable("Client connects to an etcd host", None)
         print(f"Client [parallel_driver_generate_traffic] ({traffic_id}): connected to {host}")
         execute_requests(client, traffic_id, requests)
     except Exception as e:
+        # client should always be able to connect to an etcd host
         unreachable("Client fails to connects to an etcd host", {"traffic_id":traffic_id, "host":host, "error":e})
         print(f"Client [parallel_driver_generate_traffic] ({traffic_id}): failed to connect to {host}. no requests attempted")
 

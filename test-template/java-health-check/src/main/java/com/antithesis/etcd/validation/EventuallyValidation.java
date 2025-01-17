@@ -35,7 +35,7 @@ public class EventuallyValidation {
 
         client.close();
 
-        //unreachable because key & value should always be consistent here
+        // We should NEVER go in this loop because that would mean we have a key value mismatch.
         if (!retrievedValue.equals(value)) {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode request_details = mapper.createObjectNode();
@@ -48,6 +48,7 @@ public class EventuallyValidation {
 
     public static void main(String[] args) {
 
+        // We should reach this code section while our software is under test.
         reachable("Performing health check on the etcd cluster", null);
 
         try {
@@ -76,7 +77,8 @@ public class EventuallyValidation {
             }
         }
 
-        // always assertion for nodesHealthy == 3
+        // After 15 second quiescent period, we should expect our system to have recovered and is available.
+        // The always assertion below checks that all three nodes are available.
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode healthy_node_details = mapper.createObjectNode();
         healthy_node_details.put("num_nodes_healthy", nodesHealthy);

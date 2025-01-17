@@ -17,7 +17,6 @@ def check_health():
     node_options = ["etcd0", "etcd1", "etcd2"]
 
     for i in range(0, len(node_options)):
-        #c.get will fail if node is not healthy
         try:
             c = etcd3.client(host=node_options[i], port=2379)
             c.get('setting-up')
@@ -34,11 +33,14 @@ while True:
     print("Client [entrypoint]: checking cluster health...")
     if check_health():
         print("Client [entrypoint]: cluster is healthy!")
-        setup_complete({"Message":"ETCD cluster is healthy"})
         break
     else:
         print(f"Client [entrypoint]: cluster is not healthy. retrying in {SLEEP} seconds...")
         time.sleep(SLEEP)
+
+
+# Here is the python format for setup_complete. At this point, our system is fully initialized and ready to test.
+setup_complete({"Message":"ETCD cluster is healthy"})
 
 # sleep infinity
 time.sleep(31536000)

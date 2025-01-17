@@ -82,7 +82,7 @@ This is a 3 step process, which is [described in greater detail here](https://an
 
 4. After the client container has signaled `setupComplete` (or printed `cluster is healthy`), you can run the parallel driver 1 to many times via `docker exec`: 
 
-`docker exec -it client python3 /opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py`
+`docker exec -it client /opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py`
 
 5. After that completes, you can run the serial driver in the same fashion: 
 
