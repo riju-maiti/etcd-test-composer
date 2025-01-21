@@ -45,3 +45,14 @@ COPY ./resources/local_file_helper.py /opt/antithesis/resources/local_file_helpe
 # Need empty files to track operations and ids
 COPY ./local-txt-files/operations.txt /opt/antithesis/local-txt-files/operations.txt
 COPY ./local-txt-files/client-traffic-ids.txt /opt/antithesis/local-txt-files/client-traffic-ids.txt
+
+RUN apt-get install -y curl cargo protobuf-compiler
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+RUN echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+
+COPY ./rust-db-consistent-lines /opt/antithesis/rust-db-consistent-lines
+
+RUN cargo build --manifest-path=/opt/antithesis/rust-db-consistent-lines/Cargo.toml
+
+COPY ./main/finally_db_consistent_lines.sh /opt/antithesis/test/v1/main/finally_db_consistent_lines.sh
