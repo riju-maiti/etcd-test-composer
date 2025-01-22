@@ -2,11 +2,13 @@ use std::thread;
 use std::time::Duration;
 use etcd_client::*;
 use tokio;
+use serde_json::{json};
+use antithesis_sdk::{assert_always, antithesis_init};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
 
-    antithesis_init()
+    antithesis_init();
 
     let duration = Duration::new(15, 0);
     thread::sleep(duration);
@@ -23,7 +25,11 @@ async fn main() -> Result<(), Error> {
 
     println!("Number of entries in etcd: {}", count);
 
-    // add sdk assertion that this number is always less than or equal to 6, since that is our key space
+    // Always assertion that the key space is less than or equal to 6. We only use 6 keys in the generate_traffic script.
+    // Note: even though we have add 3 keys from the eventually_health_check script, an eventually command and a finally command
+    // will never be ran in the same timeline. That eliminates the key space from being 9 whenever we run this rust script.
+    let details = json!({"key_space_size": count});
+    assert_always!(count <= 6, "Key space remains bounded", &details);
 
     Ok(())
 }
