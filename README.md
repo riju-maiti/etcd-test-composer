@@ -18,7 +18,7 @@ Antithesis' [Test Composer](https://antithesis.com/docs/test_templates/) framewo
 
 You provide a set of *test commands,* executables which the framework detects based on [their absolute directory location and names](https://antithesis.com/docs/test_templates/first_test/#structuring-test-templates). 
 
-In `test-template/Dockerfile`, you can see that three test commands get defined in the `client` container image: `/opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py`, `/opt/antithesis/test/v1/main/serial_driver_validate_operations`, and `/opt/antithesis/test/v1/main/eventually_health_check.sh`. 
+In `test-template/Dockerfile`, you can see that four test commands get defined in the `client` container image: `/opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py`, `/opt/antithesis/test/v1/main/serial_driver_validate_operations`, `/opt/antithesis/test/v1/main/eventually_health_check.sh`, and `/opt/antithesis/test/v1/main/finally_db_consistent_lines.sh`. 
 
 *Drivers can be defined on any container in the system.* 
 
@@ -34,9 +34,13 @@ In `test-template/Dockerfile`, you can see that three test commands get defined 
 
 `eventually_health_check.sh` is an [eventually command](https://antithesis.com/docs/test_templates/test_composer_reference/#eventually-command) that checks the cluster health by pinging each node during a quiescent period.
 
+### Finally
+
+`finally_db_consistent_lines.sh` is a [finally command](https://antithesis.com/docs/test_templates/test_composer_reference/#finally-command) that checks the number of keys stored in the database. There should be a maximum of 6 keys (as defined in the parallel driver script) so we confirm that the total number of keys is less than or equal to 6. Eventually and finally commands do not overlap, so both will never be run in the same timeline.
+
 ## SDK Usage
 
-This repository includes the use of Antithesis's Python, Go, and Java SDKs, to do the following: 
+This repository includes the use of Antithesis's Python, Go, Java, and Rust SDKs, to do the following: 
 
 ### setupComplete
 
@@ -59,6 +63,20 @@ Antithesis SDKs allow users to [express the properties their software should hav
 [Always assertions](https://antithesis.com/docs/properties_assertions/properties/#always-properties) check that something (like a guarantee) *always happens, on every execution history.* In this case, in `serial_driver_validate_operations.go` this line checks that every operation is linearizable: 
 
 `assert.Always(result == true, "Operations against the cluster are linearizable", nil)`
+
+#### Reachable Assertions
+
+Reachable assertions will evaluate if that part of code was reached. In `EventuallyValidation.java`, we have the following line:
+
+`reachable("Performing health check on the etcd cluster", null);`
+
+If our test hits this line of code at least once, it will pass.
+
+#### Unreachable Assertions
+
+Unreachable assertions will evaluate if that part of code was not reached. They are written in places that we do not want to reach. An example would be in code sections that print error statements. In `parallel_driver_generate+traffic.py` we have the following assertion:
+
+`unreachable("Client fails to connects to an etcd host", {"traffic_id":traffic_id, "host":host, "error":e})`
 
 ### Randomness
 
@@ -89,6 +107,8 @@ This is a 3 step process, which is [described in greater detail here](https://an
 `docker exec client /opt/antithesis/test/v1/main/serial_driver_validate_operations`
 
 You should see a message: `Client [serial_driver_validate]: validation complete done`
+
+6. Run the other commands in the /opt/antithesis/test/v1/main directory. The eventually will print out `Client [eventually_validation]: all nodes are up during health check`. Running the finally afterwards could fail because the eventually was ran prior. The finally checks for a key space <= 6, but the eventually adds 3 keys to the database. Within Antithesis, a finally and eventually command will never be run within the same timeline. Instead, rerun the setup and run the finally before the eventually. Now, we should see it pass.
 
 You've now validated that your test is ready to run on the Antithesis platform! (Note that SDK assertions won't be evaluated locally).
 
