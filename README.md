@@ -74,9 +74,11 @@ If our test hits this line of code at least once, it will pass.
 
 #### Unreachable Assertions
 
-Unreachable assertions will evaluate if that part of code was not reached. They are written in places that we do not want to reach. An example would be in code sections that print error statements. In `parallel_driver_generate+traffic.py` we have the following assertion:
+Unreachable assertions will evaluate if that part of code was not reached. They are written in places that we do not want to reach. An example would be in code sections for error handling. In `parallel_driver_generate_traffic.py` we have the following assertion:
 
 `unreachable("Client fails to connects to an etcd host", {"traffic_id":traffic_id, "host":host, "error":e})`
+
+We expect to always to connect to an etcd host. If this assertion is ever hit, then the property will fail.
 
 ### Randomness
 
@@ -108,11 +110,10 @@ This is a 3 step process, which is [described in greater detail here](https://an
 
 You should see a message: `Client [serial_driver_validate]: validation complete done`
 
-6. Run the other commands in the /opt/antithesis/test/v1/main directory. The eventually will print out `Client [eventually_validation]: all nodes are up during health check`. Running the finally afterwards could fail because the eventually was ran prior. The finally checks for a key space <= 6, but the eventually adds 3 keys to the database. Within Antithesis, a finally and eventually command will never be run within the same timeline. Instead, rerun the setup and run the finally before the eventually. Now, we should see it pass.
+6. Run the other commands in the /opt/antithesis/test/v1/main directory. The eventually will print out `Client [eventually_validation]: all nodes are up during health check`. Running the finally afterwards could fail because the eventually was ran prior. The finally checks for a key space <= 6, but the eventually adds 3 keys to the database. Within Antithesis, a finally and eventually command will never be run within the same timeline. Instead, rerun the setup and execute the finally before the eventually. Now, we will see it pass.
 
 You've now validated that your test is ready to run on the Antithesis platform! (Note that SDK assertions won't be evaluated locally).
 
-
 ## Example Report
 
-Using the three node etcd cluster and the `client` image built from this repository, we ran a 3 hour test. The resulting [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/Oa0nNAJh_C3hzWrXcKa7newF/Z6o2DCYQufRxVkZI2mGHGDkeEBpi8hd7r3e_bl02cIw.html), and [our docs](https://antithesis.com/docs/reports/triage/) show you how to interpret it. 
+Using the three node etcd cluster and the `client` image built from this repository, we ran a 3 hour test. The resulting [triage report](https://antithesis.com/docs/reports/triage/) can be found [here](https://public.antithesis.com/report/I3S-m-GVTlo4mZ0VmMi7KM36/j-Va1hEqG_lEbVw9qJfnAdflU2KyOt3gmr5Ge9myzZs.html), and [our docs](https://antithesis.com/docs/reports/triage/) show you how to interpret it. 

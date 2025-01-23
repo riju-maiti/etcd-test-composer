@@ -51,6 +51,7 @@ public class EventuallyValidation {
         // We should reach this code section while our software is under test.
         reachable("Performing health check on the etcd cluster", null);
 
+        // When finally commands are run, the fault injector is turned off. Sleeping 15 seconds allows the system to recover.
         try {
             TimeUnit.SECONDS.sleep(15);
         } catch(InterruptedException e) {

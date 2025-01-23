@@ -10,6 +10,7 @@ async fn main() -> Result<(), Error> {
 
     antithesis_init();
 
+    // When finally commands are run, the fault injector is turned off. Sleeping 15 seconds allows the system to recover.
     let duration = Duration::new(15, 0);
     thread::sleep(duration);
 
@@ -17,10 +18,10 @@ async fn main() -> Result<(), Error> {
 
     let options = GetOptions::default().with_all_keys();
 
-    // get keys
+    // Get all the keys that are in the etcd cluster
     let response = client.get("", Some(options)).await?;
 
-    // count
+    // Count the number of keys that we received
     let count = response.kvs().len();
 
     println!("Number of entries in etcd: {}", count);

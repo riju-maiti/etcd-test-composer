@@ -1,8 +1,10 @@
 FROM docker.io/ubuntu:latest 
 
-# Install python and other dependencies
-RUN apt-get update -y && apt-get install -y \
-    python3 pip wget python3-etcd3 python3-numpy python3-protobuf python3-filelock
+# Install dependencies
+RUN apt-get update -y && apt-get install -y pip wget
+
+
+# JAVA:
 
 # Install java
 RUN apt-get install -y openjdk-17-jdk maven
@@ -14,6 +16,9 @@ RUN mvn dependency:copy-dependencies -DoutputDirectory=target/lib
 RUN mvn install
 RUN rm -r target/classes/ target/generated-sources/ target/maven-archiver/ target/maven-status/
 
+
+# RUST:
+
 # Install rust
 RUN apt-get install -y curl cargo protobuf-compiler
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
@@ -23,6 +28,16 @@ RUN echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
 COPY ./rust-db-consistent-lines /opt/antithesis/rust-db-consistent-lines
 RUN cargo build --manifest-path=/opt/antithesis/rust-db-consistent-lines/Cargo.toml
 
+# Copying shell executables into Test Composer directory
+COPY ./main/finally_db_consistent_lines.sh /opt/antithesis/test/v1/main/finally_db_consistent_lines.sh
+
+
+# PYTHON:
+
+# Install python and other dependencies
+RUN apt-get install -y python3
+RUN apt install -y python3-etcd3 python3-numpy python3-protobuf python3-filelock
+
 # Install Antithesis Python SDK
 RUN pip install antithesis cffi --break-system-packages
 
@@ -31,6 +46,9 @@ COPY ./entrypoint/entrypoint.py /entrypoint.py
 
 # Copying python script into required directory for Test Composer
 COPY ./main/parallel_driver_generate_traffic.py /opt/antithesis/test/v1/main/parallel_driver_generate_traffic.py
+
+
+# GO:
 
 # Install go
 RUN wget https://golang.org/dl/go1.22.5.linux-amd64.tar.gz
@@ -45,9 +63,11 @@ COPY ./main/go.sum ./go.sum
 COPY ./main/serial_driver_validate_operations.go ./serial_driver_validate_operations.go
 RUN go build -o /opt/antithesis/test/v1/main/serial_driver_validate_operations -race
 
-# Copying shell executables into Test Composer directory
+# Copting shell executable into Test Composer directory
 COPY ./main/eventually_health_check.sh /opt/antithesis/test/v1/main/eventually_health_check.sh
-COPY ./main/finally_db_consistent_lines.sh /opt/antithesis/test/v1/main/finally_db_consistent_lines.sh
+
+
+# EXTRA:
 
 # Copying additional resources into a resources folder (could be any directory except for the test composer directory)
 COPY ./resources/request.py /opt/antithesis/resources/request.py
