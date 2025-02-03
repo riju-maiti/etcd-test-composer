@@ -7,10 +7,12 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/anishathalye/porcupine"
 	"github.com/antithesishq/antithesis-sdk-go/assert"
 	combinations "github.com/mxschmitt/golang-combinations"
+	"go.etcd.io/etcd/clientv3"
 )
 
 type kvInput struct {
@@ -167,29 +169,6 @@ func OrganizeOperations(filepath string) [][]porcupine.Operation {
 	return [][]porcupine.Operation{operations, failed_operations}
 }
 
-func Visualize(all_operations [][]porcupine.Operation) {
-	// this only creates a visualization for the successful operations
-
-	successful_operations, _ := all_operations[0], all_operations[1]
-
-	// TODO add visualization for failed operations too? Note: _ is a bool response for linearizability
-	_, info := porcupine.CheckOperationsVerbose(kvModel, successful_operations, 0)
-
-	file, err := os.CreateTemp("resources", "*.html")
-	if err != nil {
-		fmt.Printf("failed to create temp file\n")
-		return
-	}
-
-	err = porcupine.Visualize(kvModel, info, file)
-	if err != nil {
-		fmt.Printf("visualization failed\n")
-		return
-	}
-
-	fmt.Printf("wrote visualization to %s\n", file.Name())
-}
-
 func Validate(all_operations [][]porcupine.Operation) (bool, error) {
 	fmt.Println("Client [serial_driver_validate]: starting Validate()")
 	// We should reach this part of the code where we start validating the operations
@@ -237,16 +216,9 @@ func Validate(all_operations [][]porcupine.Operation) (bool, error) {
 	return false, nil
 }
 
-func main() {
-	fmt.Println("Client [serial_driver_validate]: entered validate/main()")
+func StartValidate() {
 
 	op_log := "/opt/antithesis/local-txt-files/operations.txt"
-	create_viz := false
-
-	if len(os.Args) > 1 {
-		op_log = os.Args[1]
-		create_viz = true
-	}
 
 	all_operations := OrganizeOperations(op_log)
 
@@ -254,17 +226,33 @@ func main() {
 		return
 	}
 
-	if !create_viz {
-		result, err := Validate(all_operations)
-		if err != nil {
-			return
-		}
-		// Operations should always be linearizable
-		assert.Always(result == true, "Operations against the cluster are linearizable", nil)
-	} else {
-		Visualize(all_operations)
+	result, err := Validate(all_operations)
+	if err != nil {
+		return
 	}
+	// Operations should always be linearizable
+	assert.Always(result == true, "Operations against the cluster are linearizable", nil)
 
 	fmt.Println("Client [serial_driver_validate]: validation complete done")
 	assert.Reachable("completion of a validation script", nil)
+}
+
+func GenerateTraffic() {
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"etcd0:2379", "etcd1:22379", "etcd2:32379"},
+		DialTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		// handle error!
+	}
+
+	// operations
+	cli.Put(ctx, "sample_key", "sample_value")
+
+	defer cli.Close()
+}
+
+func main() {
+	operations = GenerateTraffic()
+	Validate(operations)
 }
