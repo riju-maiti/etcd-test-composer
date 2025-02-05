@@ -22,7 +22,7 @@ jobs:
     - name: Login to Antithesis Docker Registry
       uses: docker/login-action@v3
       with:
-        registry: ${{ secrets.DOCKER_REGISTRY_URL }}
+        registry: ${{ env.REGISTRY }}
         username: _json_key
         password: ${{ secrets.JSON_LOGIN_KEY }}
 
