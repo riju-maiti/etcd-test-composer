@@ -1,7 +1,8 @@
 #!/usr/bin/env -S python3 -u
 
 # This file serves as a parallel driver (https://antithesis.com/docs/test_templates/test_composer_reference/#parallel-driver). 
-# It does N(40, 25) random operations against a random etcd host in the cluster a
+# It does N(40, 25) random puts against a random etcd host in the cluster. We then check to see if these puts were persisted on a
+# different etcd node
 
 import string, time
 import numpy as np

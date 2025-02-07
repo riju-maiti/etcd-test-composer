@@ -97,6 +97,7 @@ func DeleteKeys() {
 	cli.Close()
 
 	assert.Reachable("Completion of a key deleting check", nil)
+	log.Printf("Completion of a key deleting check")
 }
 
 func main() {
