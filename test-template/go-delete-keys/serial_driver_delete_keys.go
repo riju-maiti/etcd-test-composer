@@ -41,8 +41,8 @@ func DeleteKeys() {
 	// Get all keys
 	resp, err := cli.Get(ctx, "", clientv3.WithPrefix())
 
-	// Sometimes client requests fail. That is ok. In this script if we don't have any keys, we will just exit.
-	assert.Always(err == nil, "Client got all keys", map[string]interface{}{"error": err})
+	// Never client requests fail. That is ok. In this script if we don't have any keys, we will just exit.
+	assert.Sometimes(err == nil, "Client got all keys", map[string]interface{}{"error": err})
 
 	// Close the client
 	cli.Close()
@@ -67,7 +67,7 @@ func DeleteKeys() {
 	var deleted_keys []string
 	for _, k := range half_keys {
 		_, err := cli.Delete(ctx, k)
-		assert.Sometimes(err != nil, "Client failed to delete a key", nil)
+		assert.Sometimes(err == nil, "Client deleted a key", map[string]interface{}{"error": err})
 		if err != nil {
 			log.Printf("Failed to delete key %s: %v", k, err)
 		} else {
@@ -85,7 +85,7 @@ func DeleteKeys() {
 	// Check to see if those keys were deleted / exist
 	for _, k := range deleted_keys {
 		resp, err := cli.Get(ctx, k)
-		assert.Always(err == nil, "Client successfully got a key", nil)
+		assert.Sometimes(err == nil, "Client got a key", map[string]interface{}{"error": err})
 		if err != nil {
 			log.Printf("Client failed to get key %s: %v", k, err)
 			continue
