@@ -1,9 +1,5 @@
 name: Trigger Antithesis exploration
 
-env:
-  REGISTRY: us-central1-docker.pkg.dev
-  REPOSITORY: molten-verve-216720/ethereum-repository
-
 on: 
   push:
     branches:
@@ -31,7 +27,7 @@ on:
         type: int
         default: 0.5
       description:
-        description: 'Test run description (avoid quotes, please!)'
+        description: 'Description (avoid quotes, please!)'
         required: true
         type: string
         default: "[user] please provide description"
