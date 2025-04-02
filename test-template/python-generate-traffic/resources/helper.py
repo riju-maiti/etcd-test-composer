@@ -3,7 +3,8 @@ import numpy as np
 
 # Antithesis SDK
 from antithesis.random import (
-    random_choice
+    random_choice,
+    get_random,
 )
 
 # Antithesis SDK
@@ -27,12 +28,8 @@ def get_request(c, key):
     except Exception as e:
         return False, e, None
 
-def generate_requests(probabilities, mu, sd):
-    num_requests = int(np.random.normal(loc=mu, scale=sd))
-    num_requests = max(num_requests, 1)
-    request_types = list(probabilities.keys())
-    request_weights = probabilities.values()
-    return random.SystemRandom().choices(request_types, request_weights, k=num_requests)
+def generate_requests():
+    return (get_random() % 100) + 1
 
 def generate_random_string():
     random_str = []

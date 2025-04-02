@@ -11,12 +11,6 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-type kvInput struct {
-	op    uint8 // 0 => get, 1 => put
-	key   string
-	value string
-}
-
 func Connect() *clientv3.Client {
 	hosts := [][]string{[]string{"etcd0:2379"}, []string{"etcd1:2379"}, []string{"etcd2:2379"}}
 	host := random.RandomChoice(hosts)
@@ -26,6 +20,7 @@ func Connect() *clientv3.Client {
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to etcd: %v", err)
+		// Antithesis Assertion: client should always be able to connect to an etcd host
 		assert.Unreachable("Client failed to connect to an etcd host", map[string]interface{}{"host": host, "error": err})
 		os.Exit(1)
 	}
@@ -35,16 +30,14 @@ func Connect() *clientv3.Client {
 func DeleteKeys() {
 	ctx := context.Background()
 
-	// Connect to a client
+	// Connect to an etcd node
 	cli := Connect()
 
 	// Get all keys
 	resp, err := cli.Get(ctx, "", clientv3.WithPrefix())
 
-	// Never client requests fail. That is ok. In this script if we don't have any keys, we will just exit.
+	// Antithesis Assertion: sometimes get requests are successful. A failed request is OK since we expect them to happen.
 	assert.Sometimes(err == nil, "Client got all keys", map[string]interface{}{"error": err})
-
-	// Close the client
 	cli.Close()
 
 	if err != nil {
@@ -60,7 +53,7 @@ func DeleteKeys() {
 	half := len(keys) / 2
 	half_keys := keys[:half]
 
-	// Connect to a new client
+	// Connect to a new etcd node
 	cli = Connect()
 
 	// Delete half of the keys chosen

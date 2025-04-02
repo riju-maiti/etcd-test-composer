@@ -1,7 +1,7 @@
 #!/usr/bin/env -S python3 -u
 
 # This file serves as a parallel driver (https://antithesis.com/docs/test_templates/test_composer_reference/#parallel-driver). 
-# It does N(40, 25) random kv puts against a random etcd host in the cluster. We then check to see if successful puts persisted
+# It does between 1 and 100 random kv puts against a random etcd host in the cluster. We then check to see if successful puts persisted
 # and are correct on another random etcd host.
 
 # Antithesis SDK
@@ -14,11 +14,6 @@ import sys
 sys.path.append("/opt/antithesis/resources")
 import helper
 
-REQUEST_PROBABILITIES = {
-    "put": 1,
-    "get": 0,
-}
-
 
 def simulate_traffic():
     """
@@ -27,10 +22,10 @@ def simulate_traffic():
         We return the key/value pairs from successful requests.
     """
     client = helper.connect_to_host()
-    requests = helper.generate_requests(REQUEST_PROBABILITIES, mu=40, sd=25)
+    num_requests = helper.generate_requests()
     kvs = []
 
-    for r in requests:
+    for _ in range(num_requests):
 
         # generating random str for the key and value
         key = helper.generate_random_string()
