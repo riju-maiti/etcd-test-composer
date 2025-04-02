@@ -24,9 +24,8 @@ def simulate_traffic():
     """
         This function will first connect to an etcd host, then execute a certain number of put requests. 
         The key and value for each put request are generated using Antithesis randomness (check within the helper.py file). 
-        We return the successful requests.
+        We return the key/value pairs from successful requests.
     """
-
     client = helper.connect_to_host()
     requests = helper.generate_requests(REQUEST_PROBABILITIES, mu=40, sd=25)
     kvs = []
