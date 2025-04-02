@@ -96,7 +96,7 @@ This is a 3 step process, which is [described in greater detail here](https://an
 
 `docker build . -f Dockerfile.client -t etcd-client:latest`
 
-3. run `docker-compose up` from the root directory to start all containers defined in `docker-compose.yml`
+3. run `docker-compose up` from the config directory to start all containers defined in `docker-compose.yml`
 
 4. After the client container has signaled `setupComplete` (or printed `cluster is healthy`), you can run the parallel driver 1 to many times via `docker exec`: 
 
