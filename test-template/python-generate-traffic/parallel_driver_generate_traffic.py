@@ -1,93 +1,80 @@
 #!/usr/bin/env -S python3 -u
 
 # This file serves as a parallel driver (https://antithesis.com/docs/test_templates/test_composer_reference/#parallel-driver). 
-# It does N(40, 25) random puts against a random etcd host in the cluster. We then check to see if these puts were persisted on a
-# different etcd node
+# It does N(40, 25) random kv puts against a random etcd host in the cluster. We then check to see if successful puts persisted
+# and are correct on another random etcd host.
 
-import string, time
-import numpy as np
-
+# Antithesis SDK
 from antithesis.assertions import (
     always,
     sometimes,
-    unreachable,
-    reachable
-)
-
-from antithesis.random import (
-    get_random,
-    random_choice
 )
 
 import sys
 sys.path.append("/opt/antithesis/resources")
 import helper
 
-MEAN = 40
-STANDARD_DEV = 25
 REQUEST_PROBABILITIES = {
-    "put": 0.1,
-    "get": 0.0
+    "put": 1,
+    "get": 0,
 }
 
 
-def generate_random_string():
-    random_str = []
-    for _ in range(8):
-        random_str.append(random_choice(list(string.ascii_letters + string.digits)))
-    return "".join(random_str)
-
-
 def simulate_traffic():
+    """
+        This function will first connect to an etcd host, then execute a certain number of put requests. 
+        The key and value for each put request are generated using Antithesis randomness (check within the helper.py file). 
+        We return the successful requests.
+    """
+
     client = helper.connect_to_host()
-    requests = helper.generate_requests(MEAN, STANDARD_DEV, REQUEST_PROBABILITIES)
+    requests = helper.generate_requests(REQUEST_PROBABILITIES, mu=40, sd=25)
     kvs = []
 
-    for request_type in requests:
-        if request_type == "put":
+    for r in requests:
 
-            key = generate_random_string()
-            value = generate_random_string()
-            success, error = helper.put_request(client, key, value)
+        # generating random str for the key and value
+        key = helper.generate_random_string()
+        value = helper.generate_random_string()
 
-            # We expect that sometimes the requests are successful. A failed request is OK since we expect them to happen sometimes.
-            sometimes(success, "Client can make successful put requests", None)
+        # response of the put request
+        success, error = helper.put_request(client, key, value)
 
-            if success:
-                kvs.append((key, value))
-                print(f"Client [parallel_driver_generate_traffic]: successful put with key '{key}' and value '{value}'")
-            else:
-                print(f"Client [parallel_driver_generate_traffic]: unsuccessful put with key '{key}', value '{value}', and error '{error}'")
+        # Antithesis Assertion: sometimes put requests are successful. A failed request is OK since we expect them to happen.
+        sometimes(success, "Client can make successful put requests", {"error":error})
 
+        if success:
+            kvs.append((key, value))
+            print(f"Client: successful put with key '{key}' and value '{value}'")
         else:
-            # We should never be here because we only have put request types
-            unreachable("Unknown request type", {"request_type":request_type})
-            print(f"Client [parallel_driver_generate_traffic]: unknown request name. this should never happen")
-            return None
+            print(f"Client: unsuccessful put with key '{key}', value '{value}', and error '{error}'")
 
-    reachable("Completion of traffic simulation", None)
-    print(f"Client [parallel_driver_generate_traffic]: traffic simulation completed")
+    print(f"Client: traffic simulated!")
     return kvs
     
 
 def validate_puts(kvs):
-    time.sleep(2)
+    """
+        This function will first connect to an etcd host, then perform a get request on each key in the key/value array. 
+        For each successful response, we check that the get request value == value from the key/value array. 
+        If we ever find a mismatch, we return it. 
+    """
     client = helper.connect_to_host()
 
     for kv in kvs:
         key, value = kv[0], kv[1]
         success, error, database_value = helper.get_request(client, key)
 
-        # We expect that sometimes the requests are successful. A failed request is OK since we expect them to happen sometimes.
-        sometimes(success, "Client can make successful get requests", None)
+        # Antithesis Assertion: sometimes get requests are successful. A failed request is OK since we expect them to happen.
+        sometimes(success, "Client can make successful get requests", {"error":error})
 
         if not success:
-            print(f"Client [parallel_driver_generate_traffic]: unsuccessful get with key '{key}', and error '{error}'")
+            print(f"Client: unsuccessful get with key '{key}', and error '{error}'")
         elif value != database_value:
+            print(f"Client: a key value mismatch! This shouldn't happen.")
             return False, (value, database_value)
 
-    reachable("Completion of put validation", None)
-    print(f"Client [parallel_driver_generate_traffic]: put validation completed")
+    print(f"Client: validation ok!")
     return True, None
 
 
@@ -95,5 +82,5 @@ if __name__ == "__main__":
     kvs = simulate_traffic()
     values_stay_consistent, mismatch = validate_puts(kvs)
 
-    # We expect that the values we put in the database stay consistent
+    # Antithesis Assertion: for all successful kv put requests, values from get requests should match for their respective keys 
     always(values_stay_consistent, "Database key values stay consistent", {"mismatch":mismatch})
