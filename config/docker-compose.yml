@@ -16,9 +16,6 @@ services:
       ETCD_INITIAL_CLUSTER: "etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380"
       ETCD_INITIAL_CLUSTER_STATE: "new"
       ALLOW_NONE_AUTHENTICATION: "yes"
-    networks:
-      antithesis-net:
-        ipv4_address: 10.0.0.10
 
   etcd1:
     image: 'bitnami/etcd:3.5'
@@ -34,9 +31,6 @@ services:
       ETCD_INITIAL_CLUSTER: "etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380"
       ETCD_INITIAL_CLUSTER_STATE: "new"
       ALLOW_NONE_AUTHENTICATION: "yes"
-    networks:
-      antithesis-net:
-        ipv4_address: 10.0.0.15
 
   etcd2:
     image: 'bitnami/etcd:3.5'
@@ -52,23 +46,8 @@ services:
       ETCD_INITIAL_CLUSTER: "etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380"
       ETCD_INITIAL_CLUSTER_STATE: "new"
       ALLOW_NONE_AUTHENTICATION: "yes"
-    networks:
-      antithesis-net:
-        ipv4_address: 10.0.0.20
 
   client:
     image: 'etcd-client:latest'
     container_name: client
-    networks:
-      antithesis-net:
-        ipv4_address: 10.0.0.131
-    user: root
     entrypoint: ['/entrypoint.py']
-
-
-networks:
-  antithesis-net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.0.0.0/24
