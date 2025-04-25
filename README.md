@@ -34,7 +34,7 @@ In `test-template/Dockerfile`, you can see that four test commands get defined i
 
 ### Finally
 
-`finally_db_consistent_lines.sh` is a [finally command](https://antithesis.com/docs/test_templates/test_composer_reference/#finally-command) that asserts the existance of only 6 keys in the database. It first deletes all the keys, writes 6 keys, and then counts the number of entries. Eventually and finally commands do not overlap, so both will never be run in the same timeline.
+`finally_db_consistent_lines.sh` is a [finally command](https://antithesis.com/docs/test_templates/test_composer_reference/#finally-command) that asserts the existence of only 6 keys in the database. It first deletes all the keys, writes 6 keys, and then counts the number of entries. Eventually and finally commands do not overlap, so both will never be run in the same timeline.
 
 ## SDK Usage
 
