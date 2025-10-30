@@ -69,7 +69,11 @@ def validate_puts(kvs):
             print(f"Client: a key value mismatch! This shouldn't happen.")
             return False, (value, database_value)
             
-        reachable(f"Client: key value match", {"key": f"{key}", "value": f"{value}", "database_value": f"{database_value}"})
+        print(f"Client: expected value '{value}' matched the retrieved value '{database_value}' for key '{key}'")
+
+        # Antithesis Assertion: If at least one key value match pair exists, we should take note of it, 
+        # in the event future iterations reveal a key value mismatch, which will end the function early
+        reachable(f"Key value match", {"key": f"{key}", "value": f"{value}", "database_value": f"{database_value}"})
 
     print(f"Client: validation ok!")
     return True, None

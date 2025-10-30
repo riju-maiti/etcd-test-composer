@@ -18,7 +18,7 @@ def put_request(c, key, value, **kwargs):
         c.put(key, value, **kwargs)
         return True, None
     except Exception as e:
-        return False, e
+        return False, str(e)
 
 def get_request(c, key):
     try:
@@ -26,7 +26,7 @@ def get_request(c, key):
         database_value = response[0].decode('utf-8')
         return True, None, database_value
     except Exception as e:
-        return False, e, None
+        return False, str(e), None
 
 def generate_requests():
     return (get_random() % 100) + 1
