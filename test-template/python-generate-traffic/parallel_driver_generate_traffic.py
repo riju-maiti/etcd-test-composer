@@ -8,6 +8,7 @@
 from antithesis.assertions import (
     always,
     sometimes,
+    reachable,
 )
 
 import sys
@@ -67,6 +68,8 @@ def validate_puts(kvs):
         elif value != database_value:
             print(f"Client: a key value mismatch! This shouldn't happen.")
             return False, (value, database_value)
+            
+        reachable(f"Client: key value match", {"key": f"{key}", "value": f"{value}", "database_value": f"{database_value}"})
 
     print(f"Client: validation ok!")
     return True, None
