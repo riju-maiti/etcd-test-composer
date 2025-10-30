@@ -13,9 +13,9 @@ from antithesis.assertions import (
 )
 
 
-def put_request(c, key, value):
+def put_request(c, key, value, **kwargs):
     try:
-        c.put(key, value)
+        c.put(key, value, **kwargs)
         return True, None
     except Exception as e:
         return False, e
