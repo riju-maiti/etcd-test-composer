@@ -108,9 +108,12 @@ def validate_keys_with_revoked_lease(kvs):
         
         # we should not be expecting anything to be retrieved
         # Q: How do we differentiate between the key not existing, and the server unable to make contact?
-        success, _, _ = helper.get_request(client, key)
+        success, error, database_value = helper.get_request(client, key)
         
-        if success:
+        # Antithesis Assertion: sometimes get requests are successful. A failed request is OK since we expect them to happen.
+        sometimes(success, "Client can make successful get requests", {"error":error})
+        
+        if database_value is not None:
             print(f"Client: the key has persisted despite being associated with a revoked lease!")
             return False, key
         
